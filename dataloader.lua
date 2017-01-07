@@ -191,6 +191,10 @@ function DataLoader:shuffle(dataset, opt, split)
 end
 
 function DataLoader:run()
+   -- shuffle
+   shuffle = torch.randperm(self.triplets:size(1)):long()
+   self.triplets = self.triplets:index(1, shuffle)
+   self.targets = self.targets:index(1, shuffle)
    local threads = self.threads
    local batchSize = self.batchSize
    local perm = self.triplets
@@ -208,9 +212,10 @@ function DataLoader:run()
                local batch = torch.FloatTensor(sz, 3, table.unpack(imageSize))
                local target = torch.IntTensor(sz)
                for i, idx in ipairs(indices:totable()) do
+                  hsplit = torch.random(0, 1)
                   for j = 1, 3 do
                     local sample = _G.dataset:get(idx[j])
-                    local input = _G.preprocess(sample.input)
+                    local input = _G.preprocess(sample.input, hsplit)
                     batch[i][j]:copy(input)
                   end
                   target[i] = targets[i]

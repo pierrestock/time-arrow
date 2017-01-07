@@ -37,11 +37,12 @@ local meanstd = {
    std = { 0.229, 0.224, 0.225 },
 }
 
-function Dataset:preprocess()
+function Dataset:preprocess(hsplit)
    if self.split == 'train' then
       return t.Compose{
          t.CenterCrop(224),
          t.ColorNormalize(meanstd),
+         t.HorizontalFlip(hsplit),
       }
    elseif self.split == 'val' then
       return t.Compose{
