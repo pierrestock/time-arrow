@@ -23,6 +23,8 @@ function M.parse(arg)
    cmd:option('-backend',         'cudnn',                                      'Options: cudnn | cunn')
    cmd:option('-cudnn',           'fastest',                                    'Options: fastest | default | deterministic')
    cmd:option('-gen',             '/home/ubuntu/object/data/gen',               'Path to save generated files')
+   cmd:option('- filters',        '/home/ubuntu/object/data/filters/'           'Path to save 1st layer filters'
+   cmd:option('- samples',        '/home/ubuntu/object/data/samples/'           'Path to save some random training samples'
    ------------- Data options ------------------------
    cmd:option('-nThreads',        8,                                            'Number of data loading threads')
    ------------- Training options --------------------
@@ -34,7 +36,7 @@ function M.parse(arg)
     cmd:option('-garbageClass',   'false',                                      'Dse of a third class (see doc)')
    ------------- Checkpointing options ---------------
    cmd:option('-save',            '/home/ubuntu/object/data/checkpoints',       'Directory in which to save checkpoints')
-   cmd:option('-resume',          'none',                                       'Resume from the latest checkpoint in this directory')
+   cmd:option('-resume',          'false',                                      'Resume from the latest checkpoint in this directory')
    ---------- Optimization options ----------------------
    cmd:option('-LR',              0.0001,                                       'Initial learning rate')
    cmd:option('-momentum',        0.9,                                          'Momentum')
@@ -42,7 +44,7 @@ function M.parse(arg)
    ---------- Model options ----------------------------------
    cmd:option('-netType',         'alexnet',                                    'Options: alexnet | other')
    cmd:option('-pretrained',      'false',                                      'Options: alexnet | other')
-   cmd:option('-pretrainedPath',  '/workdir/stockp/object/pretrained',          'Path to pretrained models')
+   cmd:option('-pretrainedPath',  '/home/ubuntu/object/data/pretrained',        'Path to pretrained models')
    cmd:option('-optimState',      'none',                                       'Path to an optimState to reload from')
    ---------- Model options ----------------------------------
    cmd:option('-shareGradInput',  'false',                                      'Share gradInput tensors to reduce memory usage')
@@ -60,6 +62,10 @@ function M.parse(arg)
    opt.pretrained = opt.pretrained ~= 'false'
    opt.displaySamples = opt.displaySamples ~= 'false'
 
+   if opt.resume ~= 'false' then
+        opt.resume = opt.save
+   end
+   
    if opt.garbageClass == 'false' then
         opt.garbageClass = 'no'
         opt.nClasses = 2

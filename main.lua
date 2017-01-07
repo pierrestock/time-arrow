@@ -41,7 +41,7 @@ if opt.testOnly then
     model:add(nn.SoftMax())
     model:cuda()
     model:evaluate()
-    
+
   for i = 1, nTests do
     local predPerVideo, correctForward, correctBackward, countForward, countBackward, countRest = valLoader:accuracyPerVideo(model)
     accuracyForward = accuracyForward + correctForward / countForward
@@ -97,7 +97,7 @@ filters = simpleFeatures.modules[1].weight
 nbFilters = filters:size(1)
 
 for i = 1, nbFilters do
-  image.save('/home/ubuntu/object/data/filters/filter_' .. i .. '.jpg', image.toDisplayTensor(filters[i]))
+  image.save(opt.filters .. '/filter_' .. i .. '.jpg', image.toDisplayTensor(filters[i]))
 end
 
 -- save model

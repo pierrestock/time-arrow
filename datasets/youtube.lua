@@ -41,7 +41,7 @@ function Dataset:preprocess()
    if self.split == 'train' then
       return t.Compose{
          t.CenterCrop(224),
-         t.ColorNormalize(meanstd), -- also crop & filp available
+         t.ColorNormalize(meanstd),
       }
    elseif self.split == 'val' then
       return t.Compose{

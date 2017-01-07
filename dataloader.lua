@@ -140,7 +140,7 @@ function DataLoader:shuffle(dataset, opt, split)
     local counter2 = 0
     local counter3 = 0
     -- loop
-    while counter < size do 
+    while counter < size do
         local i = torch.random(1, size - 49)
         if videoNames[i] == videoNames[i  + 49] then
             -- not much happens in video, class 3
@@ -175,7 +175,7 @@ function DataLoader:shuffle(dataset, opt, split)
             -- save some training/test examples
             require 'image'
             if opt.displaySamples and i % 100 == 0 then
-                local path = '/home/ubuntu/object/data/samples/sample_'
+                local path = opt.samples .. '/sample_'
                 image.save(path .. i .. '1.jpg', dataset:get(i + 0).input)
                 image.save(path .. i .. '2.jpg', dataset:get(i + 2).input)
                 image.save(path .. i .. '3.jpg', dataset:get(i + 5).input)
@@ -212,11 +212,6 @@ function DataLoader:run()
                     local sample = _G.dataset:get(idx[j])
                     local input = _G.preprocess(sample.input)
                     batch[i][j]:copy(input)
-                    --if targets[i] == 1 then
-                    --    batch[i][j]:copy(torch.zeros(3, 224, 224)) -- training in batch mode requires it with Parallel containers
-                    --else
-                    --    batch[i][j]:copy(torch.ones(3, 224, 224))
-                    --end
                   end
                   target[i] = targets[i]
                end
