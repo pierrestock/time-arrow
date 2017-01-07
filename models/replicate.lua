@@ -47,6 +47,7 @@ local function createModel(opt)
     -- classifier part
     classifier = nn.Sequential()
     classifier:add(nn.View(3 * 4096))
+    classifier:add(nn.Dropout(0.5))
     classifier:add(nn.Linear(3 * 4096, opt.nClasses))
 
     -- build entire model

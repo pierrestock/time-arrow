@@ -36,7 +36,7 @@ function DataLoader:__init(dataset, opt, split)
    end
    local function main(idx)
       if manualSeed ~= 0 then
-         torch.manualSeed(manualSeed + idx)
+         --torch.manualSeed(manualSeed + idx)
       end
       torch.setnumthreads(1)
       _G.dataset = dataset
@@ -48,6 +48,8 @@ function DataLoader:__init(dataset, opt, split)
    self.nCrops = (split == 'val' and opt.tenCrop) and 10 or 1
    self.threads = threads
    self.batchSize = math.floor(opt.batchSize / self.nCrops)
+   self.dataset = dataset
+   self.preprocess = dataset:preprocess()
    self:shuffle(dataset, opt, split)
 end
 
@@ -56,7 +58,7 @@ function DataLoader:size()
 end
 
 function DataLoader:accuracyPerVideo(model)
-    local videoNames = _G.dataset.imageInfo.videoNames
+    local videoNames = self.dataset.imageInfo.videoNames
     local imageSize = {3, 224, 224}
     local predPerVideo = {}
     local correctForward = 0
@@ -64,23 +66,35 @@ function DataLoader:accuracyPerVideo(model)
     local countRest = 0
     local countForward = 0
     local countBackward = 0
+    local currentVideo = ''
+    local i = 0
+    local counter = 0
+
     -- for every video, compute predPerVideo
-    for i = 1, #videoNames do
-        video = videoNames[i]
-        local probsSumRight = torch.zeros(3):float()
+    while counter < 36 do
+        while videoNames[i] == currentVideo or videoNames[i] ~= videoNames[i + 50] do
+            i = i + 1
+        end
+        currentVideo = videoNames[i]
+        counter = counter + 1
+        local probsSumForward = torch.zeros(3):float()
         local probsSumBackward = torch.zeros(3):float()
         -- sample 10 forward triplets
-        videoSplits[videoNames[i]] == opt.garbageClass
         local isBackward = torch.random(0, 1)
         for j = 1, 10 do
-            local seed = torch.random(1, size - 50)
+            local seed = i + torch.random(1, 50)
             local idx = {seed, seed + 25, seed + 50}
             local tripletForward = torch.FloatTensor(3, table.unpack(imageSize))
             local tripletBackward = torch.FloatTensor(3, table.unpack(imageSize))
             for k = 1, 3 do
-              local sample = _G.dataset:get(idx[k])
-              local input = _G.preprocess(sample.input)
-              if isBackward then
+              local sample = self.dataset:get(idx[k])
+              local input = self.preprocess(sample.input)
+              -- save images
+              --require 'image'
+              --local path = '/home/ubuntu/object/data/samples/sample_'
+              --image.save(path .. videoNames[i] .. k ..'.jpg', sample.input)
+              -- end save images
+              if isBackward == 0 then
                 tripletForward[k]:copy(input)
                 tripletBackward[3 - k + 1]:copy(input)
               else
@@ -88,10 +102,10 @@ function DataLoader:accuracyPerVideo(model)
                 tripletBackward[k]:copy(input)
               end
             end
-            local outputForward = model:forward(tripletForward:cuda())
-            local outputBackward = model:forward(tripletBackward:cuda())
-            probsSumForward = probsSumForward + nn.SoftMax():cuda():forward(outputForward):float()
-            probsSumBackward= probsSumBackward + nn.SoftMax():cuda():forward(outputBackward):float()
+            outputForward = model:forward(tripletForward:cuda()):float()
+            outputBackward = model:forward(tripletBackward:cuda()):float()
+            probsSumForward = probsSumForward + outputForward
+            probsSumBackward= probsSumBackward + outputBackward
         end
         stats = {}
         stats.F = probsSumForward / 10
@@ -99,14 +113,11 @@ function DataLoader:accuracyPerVideo(model)
         stats.T = videoSplits[videoNames[i]]
         stats.C = isBackward
         predPerVideo[i] = stats
-        print(stats)
         if videoSplits[videoNames[i]] == 'action' then
-          if (probsSumForward[1] - probsSumBackward[1]) >= (probsSumForward[2] - probsSumBackward[2]) then
-            if isBackward then
-              correctBackward = correctBackward + 1
-            else
-              correctForward = correctForward + 1
-            end
+          if (probsSumForward[1] + probsSumBackward[2] > probsSumForward[2] + probsSumBackward[1]) and  isBackward == 0 then
+            correctForward = correctForward + 1
+          elseif (probsSumForward[1] + probsSumBackward[2] > probsSumForward[2] + probsSumBackward[1]) and isBackward == 1 then
+            correctBackward = correctBackward + 1
           end
           countForward = countForward + (1 - isBackward)
           countBackward = countBackward + isBackward
@@ -115,6 +126,7 @@ function DataLoader:accuracyPerVideo(model)
         end
     end
     return predPerVideo, correctForward, correctBackward, countForward, countBackward, countRest
+end
 
 function DataLoader:shuffle(dataset, opt, split)
     -- variables
@@ -128,7 +140,7 @@ function DataLoader:shuffle(dataset, opt, split)
     local counter2 = 0
     local counter3 = 0
     -- loop
-    while counter < 10 * size do -- size  do
+    while counter < size do 
         local i = torch.random(1, size - 49)
         if videoNames[i] == videoNames[i  + 49] then
             -- not much happens in video, class 3

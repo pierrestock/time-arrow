@@ -89,7 +89,7 @@ function Trainer:test(epoch, dataloader)
 
    local nCrops = self.opt.tenCrop and 10 or 1
    local errSum = 0.0
-  local confMatSum = torch.zeros(3,3)
+   local confMatSum = torch.zeros(3,3)
    local N = 0
 
    self.model:evaluate()
@@ -190,16 +190,7 @@ function Trainer:copyInputs(sample)
 end
 
 function Trainer:learningRate(epoch)
-   -- Training schedule
-   local decay = 0
-   if self.opt.dataset == 'imagenet' then
-      decay = math.floor((epoch - 1) / 30)
-   elseif self.opt.dataset == 'cifar10' then
-      decay = epoch >= 122 and 2 or epoch >= 81 and 1 or 0
-   elseif self.opt.dataset == 'cifar100' then
-      decay = epoch >= 122 and 2 or epoch >= 81 and 1 or 0
-   end
-   return self.opt.LR * math.pow(0.1, decay)
+   return self.opt.LR / epoch
 end
 
 return M.Trainer

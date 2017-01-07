@@ -20,8 +20,6 @@ local checkpoints = require 'checkpoints'
 torch.setdefaulttensortype('torch.FloatTensor')
 
 local opt = opts.parse(arg)
-torch.manualSeed(opt.manualSeed)
-cutorch.manualSeedAll(opt.manualSeed)
 
 -- Load previous checkpoint, if it exists
 local checkpoint, optimState = checkpoints.latest(opt)
@@ -36,9 +34,22 @@ local trainLoader, valLoader = DataLoader.create(opt)
 local trainer = Trainer(model, criterion, opt, optimState)
 
 if opt.testOnly then
-   local predPerVideo, correctForward, correctBackward, countForward, countBackward, countRest = valLoader:accuracyPerVideo(model)
-   print(predPerVideo, correctForward, correctBackward, countForward, countBackward, countRest)
-   return
+  local nTests = 100
+  local accuracyForward, accuracyBackward = 0.0, 0.0
+
+    -- add softmax layer to output probabilities and set the model in test mode
+    model:add(nn.SoftMax())
+    model:cuda()
+    model:evaluate()
+    
+  for i = 1, nTests do
+    local predPerVideo, correctForward, correctBackward, countForward, countBackward, countRest = valLoader:accuracyPerVideo(model)
+    accuracyForward = accuracyForward + correctForward / countForward
+    accuracyBackward = accuracyBackward + correctBackward / countBackward
+    print(i, accuracyForward / i, accuracyBackward / i, correctForward / countForward, correctBackward / countBackward)
+  end
+  print(accuracyForward / nTests, accuracyBackward / nTests)
+  return
 end
 
 local startEpoch = checkpoint and checkpoint.epoch + 1 or opt.epochNumber
@@ -46,7 +57,7 @@ local bestError = math.huge
 
 
 local logger = optim.Logger(opt.save .. '/' .. os.date('%d-%m-%y:%H:%M') .. '.log')
-logger:setNames{'epoch', 'training error', 'test error', 'training time', 'testing time', '11', '12', '13', '21', '22', '23', '31', '32', '33'}
+logger:setNames{'epoch', 'training error', 'test error', 'training time', 'testing time', '11tr', '12tr', '13tr', '21tr', '22tr', '23tr', '31tr', '32tr', '33tr', '11va', '12va', '13va', '21va', '22va', '23va', '31va', '32va', '33va'}
 
 for epoch = startEpoch, opt.nEpochs do
    -- train for a single epoch
@@ -61,7 +72,7 @@ for epoch = startEpoch, opt.nEpochs do
    -- print and save to log
    print('Train error, test error = ', trainError, testError)
    print(testConfMat)
-   logger:add{epoch, trainError, testError, trainTime, testTime, testConfMat[1][1], testConfMat[1][2], testConfMat[1][3], testConfMat[2][1], testConfMat[2][2], testConfMat[2][3], testConfMat[3][1], testConfMat[3][2], testConfMat[3][3],}
+   logger:add{epoch, trainError, testError, trainTime, testTime, trainConfMat[1][1], trainConfMat[1][2], trainConfMat[1][3], trainConfMat[2][1], trainConfMat[2][2], trainConfMat[2][3], trainConfMat[3][1], trainConfMat[3][2], trainConfMat[3][3], testConfMat[1][1], testConfMat[1][2], testConfMat[1][3], testConfMat[2][1], testConfMat[2][2], testConfMat[2][3], testConfMat[3][1], testConfMat[3][2], testConfMat[3][3]}
 
    local bestModel = false
    if testError < bestError then
