@@ -21,7 +21,7 @@ Here is a brief description of the files:
 
 To start a training, simply run the following command in your favourite shell
 ```
-th main.lua -garbageClass true
+th main.lua 
 ```
 To evaluate the latest model you have trained, simply run
 ```
