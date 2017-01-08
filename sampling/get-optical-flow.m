@@ -1,4 +1,4 @@
-rootPath = '/Users/pstock/Desktop/Object Recognition/Project/Code/youtube-reduce/val';
+rootPath = '/Users/pstock/Desktop/Object Recognition/Project/Code/youtube-reduce/train';
 infos = dir(rootPath);
 folderNames = {infos.name};
 folderNames = folderNames(4:end);
@@ -20,7 +20,7 @@ for i = 1:length(folderNames)
         img = imread(imagePath{1});
         img = rgb2gray(img);
         flow = estimateFlow(opticFlow, img);
-        norms(i, j) = norm(flow.Magnitude);
+        norms(i, j) = mean(flow.Magnitude(:));
     end
 end
 

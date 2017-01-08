@@ -43,7 +43,7 @@ if opt.testOnly then
     model:evaluate()
 
   for i = 1, nTests do
-    local predPerVideo, correctForward, correctBackward, countForward, countBackward, countRest = valLoader:accuracyPerVideo(model)
+    local predPerVideo, correctForward, correctBackward, countForward, countBackward, countRest = valLoader:accuracyPerVideo(opt, model)
     accuracyForward = accuracyForward + correctForward / countForward
     accuracyBackward = accuracyBackward + correctBackward / countBackward
     print(i, accuracyForward / i, accuracyBackward / i, correctForward / countForward, correctBackward / countBackward)
@@ -69,6 +69,7 @@ for epoch = startEpoch, opt.nEpochs do
    timer:reset()
    local testError, testConfMat = trainer:test(epoch, valLoader)
    local testTime = timer:time().real
+   
    -- print and save to log
    print('Train error, test error = ', trainError, testError)
    print(testConfMat)

@@ -23,8 +23,8 @@ function M.parse(arg)
    cmd:option('-backend',         'cudnn',                                      'Options: cudnn | cunn')
    cmd:option('-cudnn',           'fastest',                                    'Options: fastest | default | deterministic')
    cmd:option('-gen',             '/home/ubuntu/object/data/gen',               'Path to save generated files')
-   cmd:option('- filters',        '/home/ubuntu/object/data/filters/'           'Path to save 1st layer filters'
-   cmd:option('- samples',        '/home/ubuntu/object/data/samples/'           'Path to save some random training samples'
+   cmd:option('- filters',        '/home/ubuntu/object/data/filters',           'Path to save 1st layer filters')
+   cmd:option('- samples',        '/home/ubuntu/object/data/samples',           'Path to save some random training samples')
    ------------- Data options ------------------------
    cmd:option('-nThreads',        8,                                            'Number of data loading threads')
    ------------- Training options --------------------
@@ -33,7 +33,9 @@ function M.parse(arg)
    cmd:option('-batchSize',       3,                                            'Mini-batch size (1 = pure stochastic)')
    cmd:option('-testOnly',        'false',                                      'Calculate per video accuracy')
    cmd:option('-displaySamples',  'false',                                      'Display some training/testing samples')
-    cmd:option('-garbageClass',   'false',                                      'Dse of a third class (see doc)')
+   cmd:option('-garbageClass',    'false',                                      'Use of a third class (see doc)')
+   cmd:option('-retrain',         'none',                                       'Retrain model')
+   cmd:option('-tenCrop',         'false',                                      '10-crop testing (do not use here)')
    ------------- Checkpointing options ---------------
    cmd:option('-save',            '/home/ubuntu/object/data/checkpoints',       'Directory in which to save checkpoints')
    cmd:option('-resume',          'false',                                      'Resume from the latest checkpoint in this directory')
@@ -65,7 +67,7 @@ function M.parse(arg)
    if opt.resume ~= 'false' then
         opt.resume = opt.save
    end
-   
+
    if opt.garbageClass == 'false' then
         opt.garbageClass = 'no'
         opt.nClasses = 2

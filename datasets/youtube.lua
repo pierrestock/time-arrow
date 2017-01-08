@@ -9,6 +9,8 @@ function Dataset:__init(imageInfo, opt, split)
    self.opt = opt
    self.split = split
    self.path = opt.data .. '/' .. split
+   self.hsplit = 0
+   self.cropId = 1
 end
 
 function Dataset:get(i)
@@ -37,12 +39,13 @@ local meanstd = {
    std = { 0.229, 0.224, 0.225 },
 }
 
-function Dataset:preprocess(hsplit)
+function Dataset:preprocess()
    if self.split == 'train' then
       return t.Compose{
+         --t.TenCrop(224, cropId),
          t.CenterCrop(224),
          t.ColorNormalize(meanstd),
-         t.HorizontalFlip(hsplit),
+         --t.HorizontalFlip(hsplit),
       }
    elseif self.split == 'val' then
       return t.Compose{

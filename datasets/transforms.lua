@@ -85,7 +85,7 @@ function M.RandomCrop(size, padding)
 end
 
 -- Four corner patches and center crop from image and its horizontal reflection
-function M.TenCrop(size)
+function M.TenCrop(size, cropId)
    local centerCrop = M.CenterCrop(size)
 
    return function(input)
@@ -99,13 +99,7 @@ function M.TenCrop(size)
          table.insert(output, image.crop(img, 0, h-size, size, h))
          table.insert(output, image.crop(img, w-size, h-size, w, h))
       end
-
-      -- View as mini-batch
-      for i, img in ipairs(output) do
-         output[i] = img:view(1, img:size(1), img:size(2), img:size(3))
-      end
-
-      return input.cat(output, 1)
+      return output[cropId]
    end
 end
 

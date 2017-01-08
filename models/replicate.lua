@@ -13,10 +13,10 @@ local function createModel(opt)
         -- adding top raw linear layers
         linear = nn.Sequential()
         linear:add(nn.View(256*6*6))
-        --linear:add(nn.Dropout(0.5))
+        linear:add(nn.Dropout(0.5))
         linear:add(nn.Linear(256*6*6, 4096))
         linear:add(nn.Threshold(0, 1e-6))
-        --linear:add(nn.Dropout(0.5))
+        linear:add(nn.Dropout(0.5))
         linear:add(nn.Linear(4096, 4096))
         linear:add(nn.Threshold(0, 1e-6))
 
